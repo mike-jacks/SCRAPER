@@ -61,8 +61,11 @@ def scrape_meta_tags(base_url: str, nav_urls) -> [str]:
             title_tag, description = get_meta_tags(url[0])
         except ValueError:
             title_tag, description = 'Error', 'Error'
-        data.append([url[0], url[1], title_tag, description])
-        print(title_tag)
+        if url[0].endswith("#"):
+            data.append([url[0], url[1],"",""])
+        else:
+            data.append([url[0], url[1], title_tag, description])
+        print(url[0])
     return data
 
 def scrape_website(base_url: str) -> [str]:
@@ -100,7 +103,7 @@ def extract_base_url_name(url):
     return match.group(1)
 
 # Main execution
-base_url = "https://www.newgateschool.org/"
+base_url = "https://www.levellandchevrolet.com/"
 scraped_data_filename = extract_base_url_name(base_url)
 folder_path = scraped_data_filename + "/"
 if not os.path.exists(folder_path):
