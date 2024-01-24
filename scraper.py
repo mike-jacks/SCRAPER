@@ -9,6 +9,8 @@ from twocaptcha import TwoCaptcha
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+time_start = time.now()
+
 # Setup Selenium Chrome web driver
 def setup_selenium():
     options = Options()
@@ -42,10 +44,10 @@ def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, lin
         return nav_urls if nav_urls != [] else None
 
 # Get meta tags (title and description) from urls
-def get_title_description_meta_tags(url, headers):
+def get_title_description_meta_tags(url):
     try:
         if with_selenium:
-            soup = scrape_with_selenium(base_url)
+            soup = scrape_with_selenium(url)
         else:
             response = requests.get(url)
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -61,28 +63,32 @@ def get_title_description_meta_tags(url, headers):
         return 'Error', 'Error'
 
 # build final rows for csv
-def scrape_urls_for_title_and_description_tags(nav_urls,headers) -> [str]:
+def scrape_urls_for_title_and_description_tags(nav_urls) -> [str]:
     # Scrape Meta Tags for each URL
     if nav_urls:
         print("Scraping URLs for Title and Description Tags")
         data = []
         for url in nav_urls:
             try:
-                title_tag, description = get_title_description_meta_tags(url[0],headers)
+                title_tag, description = get_title_description_meta_tags(url[0])
             except ValueError:
                 title_tag, description = 'Error', 'Error'
             if url[0].endswith("#"):
                 data.append([url[0], url[1],"",""])
             else:
                 data.append([url[0], url[1], title_tag, description])
+            print()
             print(url[0])
+            print(url[1])
+            print(title_tag)
+            print(description)
+            print()
         return data
     else:
         return None
 
 # Scrape website to get navigation URLs
 def scrape_website(base_url: str, headers, use_selenium=False) -> list:
-    print("Parsing URL")
     try:
         if use_selenium:
             soup = scrape_with_selenium(base_url)
@@ -92,12 +98,19 @@ def scrape_website(base_url: str, headers, use_selenium=False) -> list:
             
         # Scraping 'levellandchevrolet.com' <div class="header-navigation clearfix" links
         nav_urls = scrape_page_for_urls(soup, base_url, 'div', 'header-navigation clearfix')
-        data = scrape_urls_for_title_and_description_tags(nav_urls, headers)
+        data = scrape_urls_for_title_and_description_tags(nav_urls)
         if data:
             return data     
+        
         # Scraping 'newgateschool.org' <banner div='banner'> links
         nav_urls = scrape_page_for_urls(soup, base_url, 'banner', 'banner')
-        data = scrape_urls_for_title_and_description_tags(nav_urls, headers)
+        data = scrape_urls_for_title_and_description_tags(nav_urls)
+        if data:
+            return data 
+        
+        # Scraping 'pohankaacura.com' <div div='megamenu_navigation_container megamenu_nested'> links
+        nav_urls = scrape_page_for_urls(soup, base_url, 'div', 'megamenu_navigation_container megamenu_nested')
+        data = scrape_urls_for_title_and_description_tags(nav_urls)
         if data:
             return data 
         
@@ -132,7 +145,7 @@ base_url = "https://www.pohankaacura.com/"
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
 
-with_selenium = False
+with_selenium = True
 
 scraped_data_filename = extract_base_url_name(base_url)
 folder_path = scraped_data_filename + "/"
@@ -140,19 +153,21 @@ if not os.path.exists(folder_path):
     os.makedirs(folder_path)
 # dynamic_wait()
 
-
+print("Parsing Homepage wtihout Selenium")
 scraped_data = scrape_website(base_url, headers, with_selenium)
 if scraped_data == None:
     with_selenium = True
+    print("Parsing Homepage with Selenium")
     scraped_data = scrape_website(base_url, headers, True)
 if scraped_data == None:
-    scraped_data = [["Nothing was scraped!"]]
+    scraped_data = [["Nothing was scraped!","Check that there are valid container tags for specified URL."]]
 
 
 output_filename = os.path.join(folder_path, scraped_data_filename + '_scraped_data.csv')
 export_to_csv(scraped_data, filename=output_filename)
 print("Scraping completed and data exported to CSV.")
-
+time_end = time.now()
+print(f"This script took {time_end - time_start} to complete.")
 
 
 
