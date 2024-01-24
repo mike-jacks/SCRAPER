@@ -28,18 +28,18 @@ def scrape_with_selenium(url):
 
 # Find URL list
 def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, link_tag: str ='a') -> list:
-    print("Scraping homepage for Nav URLs")
-   
     containers = soup.find_all(container_tag, class_=container_class)
     nav_urls = []
-    for container in containers:
-        links = container.find_all(link_tag, href=True)
-        for link in links:
-            href = link.get('href')
-            full_url = href if href.startswith('http') else base_url.rstrip('/') + href
-            if [full_url, link.text.strip()] not in nav_urls:
-                nav_urls.append([full_url, link.text.strip()])
-    return nav_urls if nav_urls != [] else None
+    if containers:
+        print("Scraping homepage for Nav URLs")
+        for container in containers:
+            links = container.find_all(link_tag, href=True)
+            for link in links:
+                href = link.get('href')
+                full_url = href if href.startswith('http') else base_url.rstrip('/') + href
+                if [full_url, link.text.strip()] not in nav_urls:
+                    nav_urls.append([full_url, link.text.strip()])
+        return nav_urls if nav_urls != [] else None
 
 # Get meta tags (title and description) from urls
 def get_title_description_meta_tags(url, headers):
@@ -63,8 +63,8 @@ def get_title_description_meta_tags(url, headers):
 # build final rows for csv
 def scrape_urls_for_title_and_description_tags(nav_urls,headers) -> [str]:
     # Scrape Meta Tags for each URL
-    print("Scraping URLs for Title and Description Tags")
     if nav_urls:
+        print("Scraping URLs for Title and Description Tags")
         data = []
         for url in nav_urls:
             try:
@@ -128,7 +128,7 @@ def dynamic_wait():
 # Main execution
 solver = TwoCaptcha('3dc50ff10c3c15cd101490da3faf3c56')
 
-base_url = "https://www.levellandchevrolet.com/"
+base_url = "https://www.pohankaacura.com/"
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
 
@@ -145,6 +145,8 @@ scraped_data = scrape_website(base_url, headers, with_selenium)
 if scraped_data == None:
     with_selenium = True
     scraped_data = scrape_website(base_url, headers, True)
+if scraped_data == None:
+    scraped_data = [["Nothing was scraped!"]]
 
 
 output_filename = os.path.join(folder_path, scraped_data_filename + '_scraped_data.csv')
