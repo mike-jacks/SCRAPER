@@ -14,7 +14,8 @@ time_start = time.time()
 # Setup Selenium Chrome web driver
 def setup_selenium():
     options = Options()
-    options.headless = True
+    options.add_argument('user-agent=' + headers['User-Agent'])
+    options.add_argument("--headless=new")
     options.add_argument("--window-size=1920x1080")
     driver = webdriver.Chrome(options=options)
     return driver 
@@ -130,11 +131,12 @@ def dynamic_wait():
 # Main execution
 solver = TwoCaptcha('3dc50ff10c3c15cd101490da3faf3c56')
 
-base_url = "https://www.levellandchevrolet.com/"
+base_url = "https://www.pohankachevrolet.com/"
 
 container_tag_flags = [('div', 'header-navigation clearfix'), 
                        ('banner', 'banner'),
-                       ('div', 'megamenu_navigation_container megamenu_nested')
+                       ('div', 'megamenu_navigation_container megamenu_nested'),
+                       ('div', 'megamenu_layers')
                        ]
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
@@ -147,7 +149,11 @@ if not os.path.exists(folder_path):
     os.makedirs(folder_path)
 # dynamic_wait()
 
-print("Parsing Homepage wtihout Selenium")
+if not with_selenium:
+    print("Parsing Homepage wtihout Selenium.")
+else:
+    print("Parsing Homepage with Selenium.")
+
 scraped_data = scrape_website(base_url, headers, with_selenium)
 if scraped_data == None:
     with_selenium = True
