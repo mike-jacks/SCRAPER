@@ -163,7 +163,7 @@ print("Scraping completed and data exported to CSV.")
 
 time_end = time.time()
 time_execution = time_end - time_start
-time_execution = f"{time_execution} seconds" if time_execution < 60 else f"{time_execution // 60} minutes"
+time_execution = f"{time_execution // 1} seconds" if time_execution < 60 else f"{time_execution // 60} minutes"
 print(f"This script took {time_execution} to complete.")
 
 
