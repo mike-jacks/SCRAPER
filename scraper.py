@@ -47,7 +47,7 @@ def get_title_description_meta_tags(url, headers):
         if with_selenium:
             soup = scrape_with_selenium(base_url)
         else:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url)
             soup = BeautifulSoup(response.text, 'html.parser')
 
         # Fetching the Meta Title and Description
