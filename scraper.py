@@ -9,7 +9,7 @@ from twocaptcha import TwoCaptcha
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-time_start = time.now()
+time_start = time.time()
 
 # Setup Selenium Chrome web driver
 def setup_selenium():
@@ -95,24 +95,13 @@ def scrape_website(base_url: str, headers, use_selenium=False) -> list:
         else:
             response = requests.get(base_url, headers=headers)
             soup = BeautifulSoup(response.text, 'html.parser')
-            
-        # Scraping 'levellandchevrolet.com' <div class="header-navigation clearfix" links
-        nav_urls = scrape_page_for_urls(soup, base_url, 'div', 'header-navigation clearfix')
-        data = scrape_urls_for_title_and_description_tags(nav_urls)
-        if data:
-            return data     
         
-        # Scraping 'newgateschool.org' <banner div='banner'> links
-        nav_urls = scrape_page_for_urls(soup, base_url, 'banner', 'banner')
-        data = scrape_urls_for_title_and_description_tags(nav_urls)
-        if data:
-            return data 
-        
-        # Scraping 'pohankaacura.com' <div div='megamenu_navigation_container megamenu_nested'> links
-        nav_urls = scrape_page_for_urls(soup, base_url, 'div', 'megamenu_navigation_container megamenu_nested')
-        data = scrape_urls_for_title_and_description_tags(nav_urls)
-        if data:
-            return data 
+        for flags in container_tag_flags:
+            # Scraping 'levellandchevrolet.com' <div class="header-navigation clearfix" links
+            nav_urls = scrape_page_for_urls(soup, base_url, flags[0], flags[1])
+            data = scrape_urls_for_title_and_description_tags(nav_urls)
+            if data:
+                return data     
         
     except Exception as e:
         print(f"Error parsing URL {base_url}: {e}")
@@ -141,11 +130,16 @@ def dynamic_wait():
 # Main execution
 solver = TwoCaptcha('3dc50ff10c3c15cd101490da3faf3c56')
 
-base_url = "https://www.pohankaacura.com/"
+base_url = "https://www.levellandchevrolet.com/"
+
+container_tag_flags = [('div', 'header-navigation clearfix'), 
+                       ('banner', 'banner'),
+                       ('div', 'megamenu_navigation_container megamenu_nested')
+                       ]
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
 
-with_selenium = True
+with_selenium = False
 
 scraped_data_filename = extract_base_url_name(base_url)
 folder_path = scraped_data_filename + "/"
@@ -166,8 +160,11 @@ if scraped_data == None:
 output_filename = os.path.join(folder_path, scraped_data_filename + '_scraped_data.csv')
 export_to_csv(scraped_data, filename=output_filename)
 print("Scraping completed and data exported to CSV.")
-time_end = time.now()
-print(f"This script took {time_end - time_start} to complete.")
+
+time_end = time.time()
+time_execution = time_end - time_start
+time_execution = f"{time_execution} seconds" if time_execution < 60 else f"{time_execution // 60} minutes"
+print(f"This script took {time_execution} to complete.")
 
 
 
