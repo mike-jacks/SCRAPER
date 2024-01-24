@@ -28,8 +28,8 @@ def scrape_with_selenium(url):
 
 # Find URL list
 def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, link_tag: str ='a') -> list:
-    print("Scraping page for Nav URLs")
-    
+    print("Scraping homepage for Nav URLs")
+   
     containers = soup.find_all(container_tag, class_=container_class)
     nav_urls = []
     for container in containers:
@@ -63,7 +63,7 @@ def get_title_description_meta_tags(url, headers):
 # build final rows for csv
 def scrape_urls_for_title_and_description_tags(nav_urls,headers) -> [str]:
     # Scrape Meta Tags for each URL
-    print("Scraping for Title and Description Tags")
+    print("Scraping URLs for Title and Description Tags")
     if nav_urls:
         data = []
         for url in nav_urls:
@@ -80,6 +80,7 @@ def scrape_urls_for_title_and_description_tags(nav_urls,headers) -> [str]:
     else:
         return None
 
+# Scrape website to get navigation URLs
 def scrape_website(base_url: str, headers, use_selenium=False) -> list:
     print("Parsing URL")
     try:
@@ -137,7 +138,7 @@ scraped_data_filename = extract_base_url_name(base_url)
 folder_path = scraped_data_filename + "/"
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
-dynamic_wait()
+# dynamic_wait()
 
 
 scraped_data = scrape_website(base_url, headers, with_selenium)
