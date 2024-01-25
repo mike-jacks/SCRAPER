@@ -54,7 +54,6 @@ def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, lin
         for container in containers:
             links = container.find_all(link_tag, href=True)
             for link in links:
-                print(link)
                 href = link.get('href')
                 full_url = href if href.startswith('http') else base_url.rstrip('/') + href
                 if [full_url, link.text.strip()] not in nav_urls:
@@ -126,6 +125,8 @@ def scrape_website(base_url: str, headers, use_selenium=False) -> list:
             data = scrape_urls_for_title_and_description_tags(nav_urls)
             if data:
                 return data     
+            else:
+                print("Unable to scrape links. Verify Tags are spelled correctly and in URL")
         
     except Exception as e:
         print(f"Error parsing URL {base_url}: {e}")
@@ -209,10 +210,11 @@ if __name__ == "__main__":
         base_url = args.url
 
         container_tag_flags = [(args.tag_name, args.class_name)]
-        # [('div', 'header-navigation clearfix'), 
-        # ('banner', 'banner'),
-        # ('div', 'megamenu_navigation_container megamenu_nested'),
-        # ('div', 'megamenu_layers')]
+        # [('div', 'header-navigation clearfix'), # https://www.levellandchevrolet.com 
+        # ('banner', 'banner'), # https://www.newgateschool.com/
+        # ('div', 'megamenu_navigation_container megamenu_nested'), # https://www.pohankaacura.com
+        # ('div', 'megamenu_layers'), # https://www.pohankachevrolet.com
+        # ('nav', 'nav_section')] # https://www.silverstarny.com  
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         
@@ -284,3 +286,5 @@ def handle_captcha(soup):
         captcha_url = captcha_image['src']
         captcha_solution = solve_captcha(captcha_url)
 """
+
+" This is a pretty coool keyboard if I "
