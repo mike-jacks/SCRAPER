@@ -1,3 +1,4 @@
 requests
 beautifulsoup4
 2captcha-python
+Selenium
