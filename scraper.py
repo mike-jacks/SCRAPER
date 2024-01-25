@@ -25,10 +25,25 @@ def setup_selenium():
 def scrape_with_selenium(url):
     driver = setup_selenium()
     driver.get(url)
-    # time.sleep(5)
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     driver.quit()
     return soup
+
+def scrape_submenu(link, nav_urls):
+    children = link.find_all('a', href=True)
+    for child in children:
+        print(child)
+        href = child.get('href')
+        full_url = href if href.startswith('http') else base_url.rstrip('/') + href
+        if [full_url, link.text.strip()] not in nav_urls:
+            nav_urls.append([full_url, link.text.strip()])
+        else:
+            nav_urls.append([full_url, "*DUPLICATE* " + link.text.strip()])
+        if child.children:
+            for _ in child.children:
+                scrape_submenu(child, nav_urls)
+        
+        
 
 # Find URL list
 def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, link_tag: str ='a') -> list:
@@ -39,10 +54,16 @@ def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, lin
         for container in containers:
             links = container.find_all(link_tag, href=True)
             for link in links:
+                print(link)
                 href = link.get('href')
                 full_url = href if href.startswith('http') else base_url.rstrip('/') + href
                 if [full_url, link.text.strip()] not in nav_urls:
                     nav_urls.append([full_url, link.text.strip()])
+                else:
+                    nav_urls.append([full_url, "*DUPLICATE* " + link.text.strip()])
+                if link.children:
+                    for _ in link.children:
+                        scrape_submenu(link, nav_urls)
         return nav_urls if nav_urls != [] else None
 
 # Get meta tags (title and description) from urls
@@ -129,9 +150,6 @@ def extract_base_url_name(url):
 def dynamic_wait():
     time.sleep(random.uniform(1,3))
 
-
-
-
 if __name__ == "__main__":
     time_start = time.time()
     headers = None
@@ -185,7 +203,6 @@ if __name__ == "__main__":
         
         
         
-        
         # Main execution
         solver = TwoCaptcha('3dc50ff10c3c15cd101490da3faf3c56')
         
@@ -199,7 +216,7 @@ if __name__ == "__main__":
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         
-        with_selenium = args.w_selenium
+        with_selenium = False if args.w_selenium == 'False' else True
 
         scraped_data_filename = extract_base_url_name(base_url)
         
@@ -214,10 +231,10 @@ if __name__ == "__main__":
         # export_to_csv(scraped_data, filename=output_filename)
         # print("Scraping completed and data exported to CSV.")
 
-        if not with_selenium:
-            print("Parsing Homepage wtihout Selenium.")
-        else:
+        if  with_selenium:
             print("Parsing Homepage with Selenium.")
+        else:
+            print("Parsing Homepage without Selenium.")
 
         scraped_data = scrape_website(base_url, headers, with_selenium)
         if scraped_data == None:
