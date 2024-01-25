@@ -29,6 +29,7 @@ def scrape_with_selenium(url):
     driver.quit()
     return soup
 
+# Scrape Submenu
 def scrape_submenu(link, nav_urls):
     children = link.find_all('a', href=True)
     for child in children:
@@ -214,7 +215,7 @@ if __name__ == "__main__":
         # ('banner', 'banner'), # https://www.newgateschool.com/
         # ('div', 'megamenu_navigation_container megamenu_nested'), # https://www.pohankaacura.com
         # ('div', 'megamenu_layers'), # https://www.pohankachevrolet.com
-        # ('nav', 'nav_section')] # https://www.silverstarny.com  
+        # ('div', 'bottomWrapper__nav')] # https://www.silverstarny.com  
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         
