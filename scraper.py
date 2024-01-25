@@ -256,35 +256,3 @@ if __name__ == "__main__":
         
     main()
 
-
-
-
-"""
-
-# Handle CAPTCHA if present
-# handle_captcha(soup)
-
-
-# Solve Captcha
-def solve_captcha(captcha_image_url) -> str:
-    try:
-        result = solver.solve_and_return_solution(captcha_image_url)
-        if result != 0:
-            print("CAPTCHA solved:", result)
-            return result
-        else:
-            print("Failed to solve CAPTCHA")
-            return ""
-    except Exception as e:
-        print("Error solving CAPTCHA:", e)
-        return ""
-
-def handle_captcha(soup):
-    # This is an example, adjust based on how the CAPTCHA appears on your target website
-    captcha_image = soup.find('img', {'id': 'captchaImage'})
-    if captcha_image:
-        captcha_url = captcha_image['src']
-        captcha_solution = solve_captcha(captcha_url)
-"""
-
-" This is a pretty coool keyboard if I "
