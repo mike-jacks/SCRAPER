@@ -4,12 +4,13 @@ import time
 import re
 import csv
 import random
+import argparse
 from bs4 import BeautifulSoup
 from twocaptcha import TwoCaptcha
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-time_start = time.time()
+
 
 # Setup Selenium Chrome web driver
 def setup_selenium():
@@ -24,7 +25,7 @@ def setup_selenium():
 def scrape_with_selenium(url):
     driver = setup_selenium()
     driver.get(url)
-    time.sleep(5)
+    # time.sleep(5)
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     driver.quit()
     return soup
@@ -84,6 +85,7 @@ def scrape_urls_for_title_and_description_tags(nav_urls) -> [str]:
             print(title_tag)
             print(description)
             print()
+            append_to_csv([data[-1]],output_filename)
         return data
     else:
         return None
@@ -107,13 +109,18 @@ def scrape_website(base_url: str, headers, use_selenium=False) -> list:
     except Exception as e:
         print(f"Error parsing URL {base_url}: {e}")
         return []
+
+def append_to_csv(data, filename='output.csv'):
+    with open(filename, 'a', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+    print("Appended CSV")
     
-def export_to_csv(data, filename='output.csv'):
-    print("Exporting to CSV")
+def create_csv(csv_headers, filename='output.csv'):
     with open(filename, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(['URL', 'Link Text', 'Meta Title', 'Meta Description'])
-        writer.writerows(data)
+        writer.writerow(csv_headers)
+    print("Created Empty CSV")
 
 def extract_base_url_name(url):
     match = re.search(r'://www\.(.*?)\.', url)
@@ -125,56 +132,110 @@ def dynamic_wait():
 
 
 
+if __name__ == "__main__":
+    time_start = time.time()
+    headers = None
+    container_tag_flags = None
+    with_selenium = False
+    base_url = None
+    solver = None
+    scraped_data_filename = None
+    folder_path = None
+    output_filename = None
+    
+    def process_arguments(url, tag_name, class_name, w_selenium):
+        # Your processing logic here
+        print(f"URL: {url}")
+        print(f"Tag Name: {tag_name}")
+        print(f"Class Name: {class_name}")
+        print(f"With Selenium?: {w_selenium}")
+    
+    def main():
+        global time_start
+        global headers
+        global container_tag_flags
+        global with_selenium
+        global base_url
+        global solver
+        global scraped_data_filename
+        global folder_path
+        global output_filename
+        
+        
+        parser = argparse.ArgumentParser(description="Process arguments or read from CSV")
+        parser.add_argument('-c','--csv', type=str, help='Path to the CSV file')
+        parser.add_argument('-s','--w_selenium', type=str, nargs='?', default=False, help='Run with Selenium? True or False')
+        parser.add_argument('url', type=str, nargs='?', default=None, help='Base URL to scrape.')
+        parser.add_argument('tag_name', type=str, nargs='?', default=None, help='Tag of container to find <a> tags')
+        parser.add_argument('class_name', type=str, nargs='?', default=None, help='Class of container to find <a> tags')
 
+        args = parser.parse_args()
+        try:
+            if args.csv:
+                with open(args.csv, newline='') as csvfile:
+                    reader = csv.reader(csvfile)
+                    for row in reader:
+                        process_arguments(row[0], row[1], row[2], args.selenium)
+            else:
+                if args.url is None or args.tag_name is None or args.class_name is None:
+                    parser.error("url, tag, and class_name are required without --csv")
+                process_arguments(args.url, args.tag_name, args.class_name, args.w_selenium)
+        except Exception as e:
+            print(f"Error with arguments. See error:\n{e}")
+        
+        
+        
+        
+        # Main execution
+        solver = TwoCaptcha('3dc50ff10c3c15cd101490da3faf3c56')
+        
+        base_url = args.url
 
+        container_tag_flags = [(args.tag_name, args.class_name)]
+        # [('div', 'header-navigation clearfix'), 
+        # ('banner', 'banner'),
+        # ('div', 'megamenu_navigation_container megamenu_nested'),
+        # ('div', 'megamenu_layers')]
 
-# Main execution
-solver = TwoCaptcha('3dc50ff10c3c15cd101490da3faf3c56')
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+        
+        with_selenium = args.w_selenium
 
-base_url = "https://www.pohankachevrolet.com/"
+        scraped_data_filename = extract_base_url_name(base_url)
+        
+        folder_path = scraped_data_filename + "/"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        
+        output_filename = os.path.join(folder_path, scraped_data_filename + '_scraped_data.csv')
+        create_csv(["URL","Linked Text","Meta Title","Meta Description"],output_filename)
+        
+        
+        # export_to_csv(scraped_data, filename=output_filename)
+        # print("Scraping completed and data exported to CSV.")
 
-container_tag_flags = [('div', 'header-navigation clearfix'), 
-                       ('banner', 'banner'),
-                       ('div', 'megamenu_navigation_container megamenu_nested'),
-                       ('div', 'megamenu_layers')
-                       ]
+        if not with_selenium:
+            print("Parsing Homepage wtihout Selenium.")
+        else:
+            print("Parsing Homepage with Selenium.")
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+        scraped_data = scrape_website(base_url, headers, with_selenium)
+        if scraped_data == None:
+            with_selenium = True
+            print("Parsing Homepage with Selenium")
+            scraped_data = scrape_website(base_url, headers, True)
+        if scraped_data == None:
+            scraped_data = [["Nothing was scraped!","Check that there are valid container tags for specified URL."]]
 
-with_selenium = False
+        
 
-scraped_data_filename = extract_base_url_name(base_url)
-folder_path = scraped_data_filename + "/"
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-# dynamic_wait()
-
-if not with_selenium:
-    print("Parsing Homepage wtihout Selenium.")
-else:
-    print("Parsing Homepage with Selenium.")
-
-scraped_data = scrape_website(base_url, headers, with_selenium)
-if scraped_data == None:
-    with_selenium = True
-    print("Parsing Homepage with Selenium")
-    scraped_data = scrape_website(base_url, headers, True)
-if scraped_data == None:
-    scraped_data = [["Nothing was scraped!","Check that there are valid container tags for specified URL."]]
-
-
-output_filename = os.path.join(folder_path, scraped_data_filename + '_scraped_data.csv')
-export_to_csv(scraped_data, filename=output_filename)
-print("Scraping completed and data exported to CSV.")
-
-time_end = time.time()
-time_execution = time_end - time_start
-time_execution = f"{time_execution // 1} seconds" if time_execution < 60 else f"{time_execution // 60} minutes"
-print(f"This script took {time_execution} to complete.")
-
-
-
-
+        time_end = time.time()
+        time_execution = time_end - time_start
+        time_execution = f"{time_execution // 1} seconds" if time_execution < 60 else f"{time_execution // 60} minutes"
+        print(f"This script took {time_execution} to complete.")
+                        
+        
+    main()
 
 
 
