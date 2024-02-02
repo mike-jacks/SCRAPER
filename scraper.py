@@ -65,6 +65,7 @@ def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, lin
                     for _ in link.children:
                         scrape_submenu(link, nav_urls)
         return nav_urls if nav_urls != [] else None
+    return None  # Add the missing return statement
 
 # Get meta tags (title and description) from urls
 def get_title_description_meta_tags(url):
@@ -113,15 +114,16 @@ def scrape_urls_for_title_and_description_tags(nav_urls) -> [str]:
 
 # Scrape website to get navigation URLs
 def scrape_website(base_url: str, headers, use_selenium=False) -> list | None:
+    global container_tag_flags
     try:
         if use_selenium:
             soup = scrape_with_selenium(base_url)
         else:
             response = requests.get(base_url, headers=headers)
             soup = BeautifulSoup(response.text, 'html.parser')
-        
+        if not container_tag_flags:
+            return []
         for flags in container_tag_flags:
-            # Scraping 'levellandchevrolet.com' <div class="header-navigation clearfix" links
             nav_urls = scrape_page_for_urls(soup, base_url, flags[0], flags[1])
             data = scrape_urls_for_title_and_description_tags(nav_urls)
             if data:
@@ -129,16 +131,17 @@ def scrape_website(base_url: str, headers, use_selenium=False) -> list | None:
             else:
                 print("Unable to scrape links. Verify Tags are spelled correctly and in URL")
                 return []
-        
     except Exception as e:
         print(f"Error parsing URL {base_url}: {e}")
         return []
+    return None
 
 def append_to_csv(data, filename='output.csv'):
     with open(filename, 'a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerows(data)
     print("Appended CSV")
+
     
 def create_csv(csv_headers, filename='output.csv'):
     with open(filename, 'w', newline='', encoding='utf-8') as file:
