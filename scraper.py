@@ -114,7 +114,6 @@ def scrape_urls_for_title_and_description_tags(nav_urls) -> [str]:
 
 # Scrape website to get navigation URLs
 def scrape_website(base_url: str, headers, use_selenium=False) -> list | None:
-    global container_tag_flags
     try:
         if use_selenium:
             soup = scrape_with_selenium(base_url)
