@@ -47,7 +47,7 @@ def scrape_submenu(link, nav_urls):
         
 
 # Find URL list
-def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, link_tag: str ='a') -> list:
+def scrape_page_for_urls(soup, base_url:str, container_tag, container_class, link_tag: str ='a') -> list | None:
     containers = soup.find_all(container_tag, class_=container_class)
     nav_urls = []
     if containers:
