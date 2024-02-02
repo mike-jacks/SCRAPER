@@ -112,7 +112,7 @@ def scrape_urls_for_title_and_description_tags(nav_urls) -> [str]:
         return None
 
 # Scrape website to get navigation URLs
-def scrape_website(base_url: str, headers, use_selenium=False) -> list:
+def scrape_website(base_url: str, headers, use_selenium=False) -> list | None:
     try:
         if use_selenium:
             soup = scrape_with_selenium(base_url)
@@ -128,6 +128,7 @@ def scrape_website(base_url: str, headers, use_selenium=False) -> list:
                 return data     
             else:
                 print("Unable to scrape links. Verify Tags are spelled correctly and in URL")
+                return []
         
     except Exception as e:
         print(f"Error parsing URL {base_url}: {e}")
